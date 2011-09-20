@@ -56,5 +56,6 @@ spectrum_SOURCES = adhoc/adhocadmin.cpp \
 	protocols/twitter.cpp \
 	protocols/xmpp.cpp \
 	protocols/yahoo.cpp \
-	protocols/sipe.cpp
+	protocols/sipe.cpp \
+	protocols/mrim.cpp
 noinst_HEADERS = main.h

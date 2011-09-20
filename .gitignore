@@ -11,3 +11,5 @@ CMakeFiles/
 Makefile
 cmake_install.cmake
 transport_config.h
+po/*.mo
+install_manifest.txt
