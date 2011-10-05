@@ -30,6 +30,7 @@
 #include "user.h"
 #include "transport.h"
 #include "main.h"
+#include "curl/curl.h"
 
 GlooxRegisterHandler* GlooxRegisterHandler::m_pInstance = NULL;
 
@@ -117,6 +118,11 @@ bool GlooxRegisterHandler::handleIq(const IQ &iq) {
 	bool ret = handleIq(iqTag);
 	delete iqTag;
 	return ret;
+}
+
+static int writercurl(char *data, size_t size, size_t nmemb, std::string *buffer)
+{
+  return size * nmemb;
 }
 
 bool GlooxRegisterHandler::handleIq(const Tag *iqTag) {
@@ -386,6 +392,48 @@ bool GlooxRegisterHandler::handleIq(const Tag *iqTag) {
 			res.encoding = encoding;
 			res.vip = 0;
 
+			//Log("RavikWoW_Debug", "adding new user: jid^"<< res.jid << ", uin^" << res.uin <<  ", pass^" << res.password <<  ", lang^" << res.language <<  ", enc^" << res.encoding);
+			//Log("RavikWoW_Debug", "Protocol: "<< CONFIG().protocol << ", Transport: " << Transport::instance()->jid());
+			std::string urltransport = Transport::instance()->jid();
+			urltransport = urltransport.substr(0,urltransport.find_first_of('.')-1);
+			//Log("RavikWoW_Debug", "Protocol: "<< urltransport);
+			if (urltransport=="vkontakte")
+			{
+				static char errorBuffer[CURL_ERROR_SIZE];
+				char * lasturl;
+				static std::string buffer;
+				CURL *curl;
+				CURLcode result;
+				curl = curl_easy_init();
+				if (curl)
+				{
+					curl_easy_setopt(curl, CURLOPT_URL, "http://vk.com/login.php");
+					curl_easy_setopt(curl, CURLOPT_HEADER, 0);
+					curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+					curl_easy_setopt(curl, CURLOPT_POST, 1);
+					std::string req =(std::string)"email="+res.uin+(std::string)"&pass="+res.password;
+					curl_easy_setopt(curl, CURLOPT_POSTFIELDS, req.c_str());
+					curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)req.length());
+					curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1");
+					curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writercurl);
+					curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+					result = curl_easy_perform(curl);
+					if (result == CURLE_OK)
+					{
+						result = curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &lasturl);
+						if (result == CURLE_OK) {
+							std::string str = lasturl;
+							str = str.substr(str.find_last_of('/')+1);
+							if(str!="login.php")
+							{
+								Log("GlooxRegisterHandler", "Change VKontakte login: " << res.uin << " to " << str);
+								res.uin = str;
+							}
+						}
+					}
+				}
+				curl_easy_cleanup(curl);
+			}
 			registerUser(res);
 		}
 		else {
