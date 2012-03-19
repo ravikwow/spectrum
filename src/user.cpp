@@ -296,6 +296,7 @@ void User::connect() {
 		purple_account_set_proxy_info(m_account, info);
 	}
 
+	SpectrumRosterManager::sendPresence(Transport::instance()->jid(), m_jid, "unavailable", tr(getLang(), _("Connecting")));
 	if (valid && getSetting<bool>("enable_transport")) {
 // 		purple_account_connect(m_account);
 		const PurpleStatusType *statusType = purple_account_get_status_type_with_primitive(m_account, (PurpleStatusPrimitive) m_presenceType);
@@ -311,7 +312,7 @@ void User::connect() {
 		purple_account_set_enabled(m_account, PURPLE_UI, TRUE);
 	}
 
-	SpectrumRosterManager::sendPresence(Transport::instance()->jid(), m_jid, "unavailable", tr(getLang(), _("Connecting")));
+	//SpectrumRosterManager::sendPresence(Transport::instance()->jid(), m_jid, "unavailable", tr(getLang(), _("Connecting")));
 }
 
 /*

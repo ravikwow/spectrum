@@ -10,7 +10,7 @@
                     ~MRIMProtocol();
                     const std::string gatewayIdentity() { return "mrim"; }
     //              const std::string protocol() { return "prpl-ostin-mrim"; }
-                    const std::string protocol() { return "prpl-mra"; }
+                    const std::string protocol() { return "prpl-ostin-mrim-experimental"; }
                     Tag *getVCardTag(AbstractUser *user, GList *vcardEntries);
                     std::list<std::string> transportFeatures();
                     std::list<std::string> buddyFeatures();
